@@ -1631,3 +1631,9 @@
 1491890964 /usr/include/wx-3.0/wx/gtk/mdi.h
 	"wx/frame.h"
 
+1521471276 source:/users/info/etu-s4/benettim/Git/Projet_Traitement_Images/Projet_M4105C/src/MyImage.cpp
+	"MyImage.h"
+
+1521471276 /users/info/etu-s4/benettim/Git/Projet_Traitement_Images/Projet_M4105C/include/MyImage.h
+	<wx/wx.h>
+

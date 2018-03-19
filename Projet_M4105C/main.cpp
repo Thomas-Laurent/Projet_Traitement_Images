@@ -156,7 +156,7 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 
 void MyFrame::OnHello(wxCommandEvent& event)
 {
-	wxLogMessage(wxT("Par Mathilde Benetti & Thomas Laurent"));
+	wxLogMessage(wxT("Par Thomas Laurent & Mathilde Benetti"));
 }
 
 void MyFrame::OnExit(wxCommandEvent& event)
