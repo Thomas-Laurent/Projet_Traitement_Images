@@ -11,7 +11,6 @@ MyImage::MyImage(wxImage image)
 }
 
 
-
 MyImage::MyImage(int largeur, int hauteur)
 : wxImage(largeur, hauteur)
 {
@@ -31,7 +30,6 @@ MyImage::~MyImage()
 void MyImage::Negative(){
     unsigned char * data = this->GetData();
     int taille = this->GetHeight()*this->GetWidth()*3;
-
 
     for(int i = 0; i < taille; i++){
         data[i] = 255 - data[i];

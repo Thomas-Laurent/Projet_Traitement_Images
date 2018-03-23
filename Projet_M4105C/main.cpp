@@ -27,12 +27,14 @@ public:
     void DesaturateImage();
     void VLumImage();
     void RotateImage(int angle);
+    void BackImage();
+    void CopieImage();
     int getWidth();
     int getHeight();
 
 private:
     wxBitmap m_bitmap ;	// used to display the image
-    MyImage *m_image ;  // used to load and process the image
+    MyImage *m_image, *m_copie_image ;  // used to load and process the image
     wxPaintDC *dc;
     int m_width = 0, m_height = 0;
 };
@@ -49,6 +51,7 @@ private:
 	void OnOpenImage(wxCommandEvent& event);
 	void OnSaveImage (wxCommandEvent& event);
 	void OnProcessImage (wxCommandEvent& event);
+	void OnBack(wxCommandEvent& event);
 	MyPanel *m_panel; // the panel inside the main frame
 
 };
@@ -72,6 +75,7 @@ enum	// énumération. Elle gère la numérotation automatiquement
 	ID_Negative = 16,
 	ID_Desaturate = 17,
 	ID_VLum = 18,
+	ID_Back
 };
 
 IMPLEMENT_APP(MyApp)
@@ -96,6 +100,9 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 
     menuFile->Append(ID_Save, wxT("Sauvegarder\tCtrl-S")) ;
 	Bind(wxEVT_MENU, &MyFrame::OnSaveImage, this, ID_Save) ;
+
+	menuFile->Append(ID_Back, wxT("Annuler la dernière action\tCtrl-Z")) ;
+	Bind(wxEVT_MENU, &MyFrame::OnBack, this, ID_Back) ;
 
     menuFile->Append(ID_Hello, wxT("Crédits\tAlt-C")) ;
 	Bind(wxEVT_MENU, &MyFrame::OnHello, this, ID_Hello) ;
@@ -211,9 +218,15 @@ void MyFrame::OnSaveImage (wxCommandEvent& event)
     }
 }
 
+void MyFrame::OnBack (wxCommandEvent& event)
+{
+    m_panel->BackImage();
+}
+
 void MyFrame::OnProcessImage (wxCommandEvent& event)
 {
     clock_t delai = clock();
+    m_panel->CopieImage();
 
     switch (event.GetId()) {
         case ID_HMirror: m_panel->MirrorImage(true); break;
@@ -225,6 +238,7 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
         case ID_Negative: m_panel->NegativeImage(); break;
         case ID_Desaturate : m_panel->DesaturateImage(); break;
         case ID_VLum : m_panel->VLumImage(); break;
+        case ID_Back : m_panel->BackImage(); break;
     }
 
     delai = clock() - delai;
@@ -258,6 +272,7 @@ void MyPanel::OpenImage(wxString fileName)
     }
     m_width = m_image->GetWidth();
     m_height = m_image->GetHeight();
+    this->SetSize(m_width, m_height);
     this->GetParent()->SetClientSize(m_width, m_height);
     Refresh();
 }
@@ -287,7 +302,6 @@ void MyPanel::MirrorImage(bool horizontal){
 
 void MyPanel::BlurImage()
 {
-
     if (m_image == nullptr) {
         wxLogMessage(wxT("Vous n'avez pas d'image à flouter"));
     } else {
@@ -340,11 +354,44 @@ void MyPanel::VLumImage()
 
 void MyPanel::SaveImage(wxString fileName)
 {
-    if (m_image == nullptr) {
+    if (m_copie_image == nullptr) {
         wxLogMessage(wxT("Vous n'avez pas d'image à sauvegarder"));
     } else {
         m_image->SaveFile(fileName+".png");
     }
+}
+
+void MyPanel::CopieImage()
+{
+    if (m_image != nullptr) {
+
+        if (m_copie_image != nullptr) {
+            delete m_copie_image;
+        }
+
+        m_copie_image = new MyImage(m_image->GetWidth(), m_image->GetHeight());
+
+        unsigned char* dataCopie = m_copie_image->GetData();
+        int taille = m_image->GetHeight()*m_image->GetWidth()*3;
+
+        unsigned char* data = m_image->GetData();
+
+        for(int i = 0; i < taille; i++){
+            dataCopie[i] = data[i];
+        }
+
+    }
+}
+
+void MyPanel::BackImage()
+{
+    if (m_image == nullptr) {
+        wxLogMessage(wxT("Vous ne pouvez pas retourner en arrière"));
+    } else {
+        delete m_image;
+        m_image = new MyImage(*m_copie_image);
+    }
+    Refresh();
 }
 
 int MyPanel::getWidth(){
@@ -354,5 +401,3 @@ int MyPanel::getWidth(){
 int MyPanel::getHeight(){
     return this->m_height;
 }
-
-
