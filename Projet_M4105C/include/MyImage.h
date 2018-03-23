@@ -14,6 +14,7 @@ class MyImage : public wxImage
         void Negative();
         void Desaturate();
         void VLum();
+        void Crop(wxRect rect);
 
     private:
 

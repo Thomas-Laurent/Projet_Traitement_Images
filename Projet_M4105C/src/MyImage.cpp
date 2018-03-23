@@ -65,3 +65,11 @@ void MyImage::VLum(){
         }
     }
 }
+
+
+void MyImage::Crop(wxRect rect){
+
+    *this = this->GetSubImage(rect);
+
+}
+

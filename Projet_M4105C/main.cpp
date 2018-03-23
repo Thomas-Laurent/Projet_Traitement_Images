@@ -26,6 +26,7 @@ public:
     void NegativeImage();
     void DesaturateImage();
     void VLumImage();
+    void CropImage();
     void RotateImage(int angle);
     void BackImage();
     void CopieImage();
@@ -75,7 +76,8 @@ enum	// énumération. Elle gère la numérotation automatiquement
 	ID_Negative = 16,
 	ID_Desaturate = 17,
 	ID_VLum = 18,
-	ID_Back
+	ID_Back,
+	ID_Crop
 };
 
 IMPLEMENT_APP(MyApp)
@@ -150,6 +152,12 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 
 	menuFile3->Append(ID_VLum, wxT("Vitesse Lumière \tAlt-V")) ;
 	Bind(wxEVT_MENU, &MyFrame::OnProcessImage, this, ID_VLum) ;
+
+	menuFile3->AppendSeparator();
+
+    menuFile3->Append(ID_Crop, wxT("Crop \tAlt-C")) ;
+    Bind(wxEVT_MENU, &MyFrame::OnProcessImage, this, ID_Crop) ;
+
 
 	wxMenuBar *menuBar = new wxMenuBar ;
 	menuBar->Append( menuFile, wxT("Fichier" )) ;
@@ -239,6 +247,8 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
         case ID_Desaturate : m_panel->DesaturateImage(); break;
         case ID_VLum : m_panel->VLumImage(); break;
         case ID_Back : m_panel->BackImage(); break;
+        case ID_Crop :m_panel->CropImage(); break;
+
     }
 
     delai = clock() - delai;
@@ -392,6 +402,17 @@ void MyPanel::BackImage()
         m_image = new MyImage(*m_copie_image);
     }
     Refresh();
+}
+
+void MyPanel::CropImage()
+{
+    if (m_image == nullptr) {
+        wxLogMessage(wxT("Vous n'avez pas d'image à modifier"));
+    } else {
+        wxRect rect = wxRect(wxPoint(0,0),wxPoint(90,90));
+        m_image->Crop(rect);
+        Refresh();
+    }
 }
 
 int MyPanel::getWidth(){
