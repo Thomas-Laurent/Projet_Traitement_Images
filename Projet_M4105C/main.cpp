@@ -176,7 +176,7 @@ void MyFrame::OnHello(wxCommandEvent& event)
 
 void MyFrame::OnExit(wxCommandEvent& event)
 {
-	Close( true );
+	Close(true);
 }
 
 void MyFrame::OnResize(wxCommandEvent& event)
@@ -237,17 +237,51 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
     m_panel->CopieImage();
 
     switch (event.GetId()) {
-        case ID_HMirror: m_panel->MirrorImage(true); break;
-        case ID_VMirror: m_panel->MirrorImage(false); break;
-        case ID_Blur: m_panel->BlurImage(); break;
-        case ID_Rot90: m_panel->RotateImage(90); break;
-        case ID_Rot180: m_panel->RotateImage(180); break;
-        case ID_RotM90: m_panel->RotateImage(270); break;
-        case ID_Negative: m_panel->NegativeImage(); break;
-        case ID_Desaturate : m_panel->DesaturateImage(); break;
-        case ID_VLum : m_panel->VLumImage(); break;
-        case ID_Back : m_panel->BackImage(); break;
-        case ID_Crop :m_panel->CropImage(); break;
+        case ID_HMirror:
+            m_panel->MirrorImage(true);
+            break;
+
+        case ID_VMirror:
+            m_panel->MirrorImage(false);
+            break;
+
+        case ID_Blur:
+            m_panel->BlurImage();
+            break;
+
+        case ID_Rot90:
+            m_panel->RotateImage(90);
+            break;
+
+        case ID_Rot180:
+            m_panel->RotateImage(180);
+            break;
+
+        case ID_RotM90:
+            m_panel->RotateImage(270);
+            break;
+
+        case ID_Negative:
+            m_panel->NegativeImage();
+            break;
+
+        case ID_Desaturate :
+            m_panel->DesaturateImage();
+            break;
+
+        case ID_VLum :
+            m_panel->VLumImage();
+            break;
+
+        case ID_Back :
+            m_panel->BackImage();
+            break;
+
+        case ID_Crop :
+            m_panel->CropImage();
+            break;
+
+        default : Close(true); break;
 
     }
 
@@ -411,7 +445,6 @@ void MyPanel::CropImage()
     } else {
         wxRect rect = wxRect(wxPoint(0,0),wxPoint(90,90));
         m_image->Crop(rect);
-        Refresh();
     }
 }
 
