@@ -414,16 +414,7 @@ void MyPanel::CopieImage()
         }
 
         m_copie_image = new MyImage(m_image->GetWidth(), m_image->GetHeight());
-
-        unsigned char* dataCopie = m_copie_image->GetData();
-        int taille = m_image->GetHeight()*m_image->GetWidth()*3;
-
-        unsigned char* data = m_image->GetData();
-
-        for(int i = 0; i < taille; i++){
-            dataCopie[i] = data[i];
-        }
-
+        *m_copie_image = m_image->Copy();
     }
 }
 
