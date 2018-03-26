@@ -439,6 +439,19 @@ void MyPanel::CropImage()
     }
 }
 
+void MyPanel::CropImage()
+{
+    if (m_image == nullptr) {
+        wxLogMessage(wxT("Vous n'avez pas d'image à modifier"));
+    } else {
+        //wxMouseEvent & event = ;
+       // wxPoint CoordSouris = event.GetPosition();
+        wxRect rect = wxRect(wxPoint(0,0),wxPoint(45,98));
+        m_image->Crop(rect);
+    }
+    // Entrer dans un mode crop avec un booléen quand je rentre dans le mode crop je demande 2 click pour déterminer les coordonées du reclangle puis je ressors du mode et je crop
+}
+
 int MyPanel::getWidth(){
     return this->m_width;
 }
