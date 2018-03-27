@@ -4,7 +4,10 @@
 #include <wx/wx.h>
 #include <MyImage.h>
 #include <time.h>
+#include <iostream>
 #endif
+
+#define NB_RETOURS 5
 
 class MyApp: public wxApp
 {
@@ -28,16 +31,20 @@ public:
     void VLumImage();
     void CropImage();
     void RotateImage(int angle);
-    void BackImage();
-    void CopieImage();
+    void BackImage(int indiceCopie);
+    void CopieImage(int indiceCopie);
     int getWidth();
     int getHeight();
+    int getIndice();
+    void setIndice(int nouvelIndice);
+
 
 private:
     wxBitmap m_bitmap ;	// used to display the image
-    MyImage *m_image, *m_copie_image ;  // used to load and process the image
+    MyImage *m_image;//, *m_copie_image;  // used to load and process the image
+    MyImage* m_copies [NB_RETOURS];
     wxPaintDC *dc;
-    int m_width = 0, m_height = 0;
+    int m_width = 0, m_height = 0, m_indice_copie = 0;
 };
 
 class MyFrame: public wxFrame
@@ -54,6 +61,7 @@ private:
 	void OnProcessImage (wxCommandEvent& event);
 	void OnBack(wxCommandEvent& event);
 	MyPanel *m_panel; // the panel inside the main frame
+	int indiceCourant = 0;
 
 };
 
@@ -104,7 +112,7 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 	Bind(wxEVT_MENU, &MyFrame::OnSaveImage, this, ID_Save) ;
 
 	menuFile->Append(ID_Back, wxT("Annuler la dernière action\tCtrl-Z")) ;
-	Bind(wxEVT_MENU, &MyFrame::OnBack, this, ID_Back) ;
+	Bind(wxEVT_MENU, &MyFrame::OnProcessImage, this, ID_Back) ;
 
     menuFile->Append(ID_Hello, wxT("Crédits\tAlt-C")) ;
 	Bind(wxEVT_MENU, &MyFrame::OnHello, this, ID_Hello) ;
@@ -226,15 +234,14 @@ void MyFrame::OnSaveImage (wxCommandEvent& event)
     }
 }
 
-void MyFrame::OnBack (wxCommandEvent& event)
-{
-    m_panel->BackImage();
-}
-
 void MyFrame::OnProcessImage (wxCommandEvent& event)
 {
     clock_t delai = clock();
-    m_panel->CopieImage();
+    indiceCourant = m_panel->getIndice()%5;
+    m_panel->setIndice(m_panel->getIndice()+1);
+    std::cout << "Indice courant :" << indiceCourant << std::endl;
+    std::cout << "Indice global :" << m_panel->getIndice() << std::endl << "-----" << std::endl;
+    m_panel->CopieImage(indiceCourant);
 
     switch (event.GetId()) {
         case ID_HMirror:
@@ -274,7 +281,7 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
             break;
 
         case ID_Back :
-            m_panel->BackImage();
+            m_panel->BackImage(indiceCourant);
             break;
 
         case ID_Crop :
@@ -287,6 +294,8 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
 
     delai = clock() - delai;
     GetStatusBar()->SetStatusText("Temps Processus : " + std::to_string(((float)delai)/CLOCKS_PER_SEC) + " sec");
+
+    indiceCourant = (m_panel->getIndice()+1)%NB_RETOURS;
 
     Refresh();
 }
@@ -398,45 +407,39 @@ void MyPanel::VLumImage()
 
 void MyPanel::SaveImage(wxString fileName)
 {
-    if (m_copie_image == nullptr) {
+    if (m_image == nullptr) {
         wxLogMessage(wxT("Vous n'avez pas d'image à sauvegarder"));
     } else {
         m_image->SaveFile(fileName+".png");
     }
 }
 
-void MyPanel::CopieImage()
+void MyPanel::CopieImage(int indiceCopie)
 {
     if (m_image != nullptr) {
 
-        if (m_copie_image != nullptr) {
-            delete m_copie_image;
+        if (m_copies[indiceCopie] != nullptr) {
+            delete m_copies[indiceCopie];
         }
 
-        m_copie_image = new MyImage(m_image->GetWidth(), m_image->GetHeight());
-        *m_copie_image = m_image->Copy();
+        m_copies[indiceCopie] = new MyImage(m_image->GetWidth(), m_image->GetHeight());
+        *m_copies[indiceCopie] = m_image->Copy();
     }
 }
 
-void MyPanel::BackImage()
+void MyPanel::BackImage(int indiceCopie)
 {
-    if (m_image == nullptr) {
+    if (m_copies[0] == nullptr && m_copies[NB_RETOURS-1] == nullptr) {
         wxLogMessage(wxT("Vous ne pouvez pas retourner en arrière"));
     } else {
         delete m_image;
-        m_image = new MyImage(*m_copie_image);
+        if (indiceCopie == 0){
+            m_image = new MyImage(*m_copies[NB_RETOURS-1]);
+        } else {
+            m_image = new MyImage(*m_copies[indiceCopie-1]);
+        }
     }
     Refresh();
-}
-
-void MyPanel::CropImage()
-{
-    if (m_image == nullptr) {
-        wxLogMessage(wxT("Vous n'avez pas d'image à modifier"));
-    } else {
-        wxRect rect = wxRect(wxPoint(0,0),wxPoint(90,90));
-        m_image->Crop(rect);
-    }
 }
 
 void MyPanel::CropImage()
@@ -459,3 +462,19 @@ int MyPanel::getWidth(){
 int MyPanel::getHeight(){
     return this->m_height;
 }
+
+int MyPanel::getIndice(){
+    return this->m_indice_copie;
+}
+
+void MyPanel::setIndice(int nouvelIndice){
+    this->m_indice_copie = nouvelIndice;
+}
+
+/*stack <MyImage*> MyPanel::getCopies(){
+    return this->m_copies;
+}
+
+void MyPanel::setCopies(nouvelles_copies){
+
+}*/
