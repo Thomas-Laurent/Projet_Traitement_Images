@@ -33,6 +33,9 @@ public:
     void RotateImage(int angle);
     void BackImage(int indiceCopie);
     void CopieImage(int indiceCopie);
+		void CropImg(wxCommandEvent & event);
+    void OnLeftDown(wxMouseEvent& event);
+		void OnLeftUp(wxMouseEvent& event);
     int getWidth();
     int getHeight();
     int getIndice();
@@ -45,6 +48,10 @@ private:
     MyImage* m_copies [NB_RETOURS];
     wxPaintDC *dc;
     int m_width = 0, m_height = 0, m_indice_copie = 0;
+		wxPoint CoordDown;
+		wxPoint CoordUp;
+		bool modeCrop = false;
+		bool cropping = false;
 };
 
 class MyFrame: public wxFrame
@@ -60,6 +67,7 @@ private:
 	void OnSaveImage (wxCommandEvent& event);
 	void OnProcessImage (wxCommandEvent& event);
 	void OnBack(wxCommandEvent& event);
+	void OnCrop2(wxCommandEvent& event);
 	MyPanel *m_panel; // the panel inside the main frame
 	int indiceCourant = 0;
 
@@ -85,6 +93,8 @@ enum	// énumération. Elle gère la numérotation automatiquement
 	ID_Desaturate = 17,
 	ID_VLum = 18,
 	ID_Back,
+	ID_LUP,
+	ID_LDOWN,
 	ID_Crop
 };
 
@@ -163,13 +173,13 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 
 	menuFile3->AppendSeparator();
 
-    menuFile3->Append(ID_Crop, wxT("Crop \tAlt-C")) ;
-    Bind(wxEVT_MENU, &MyFrame::OnProcessImage, this, ID_Crop) ;
+	menuFile3->Append(ID_Crop, wxT("Crop \tAlt-C")) ;
+Bind(wxEVT_MENU, &MyFrame::OnCrop, this, ID_Crop2) ;
 
 
 	wxMenuBar *menuBar = new wxMenuBar ;
 	menuBar->Append( menuFile, wxT("Fichier" )) ;
-    menuBar->Append( menuFile3, wxT("Outils" )) ;
+  menuBar->Append( menuFile3, wxT("Outils" )) ;
 	menuBar->Append( menuFile2, wxT("Options" )) ;
 	SetMenuBar(menuBar) ;
 
@@ -442,17 +452,54 @@ void MyPanel::BackImage(int indiceCopie)
     Refresh();
 }
 
-void MyPanel::CropImage()
-{
+
+void MyPanel::OnLeftDown(wxMouseEvent& event) {
+     if (modeCrop == true) {
+        cropping = true ;
+        wxPoint CoordSouris = event.GetPosition();
+        CoordDown = CoordSouris;
+
+     }
+        Refresh();
+
+}
+
+void MyPanel::OnLeftUp(wxMouseEvent& event){
+         if (cropping == true) {
+
+            wxPoint CoordSouris = event.GetPosition();
+            CoordUp = CoordSouris;
+
+            wxRect rect =  wxRect(CoordDown,CoordUp);
+            m_image->Crop(rect);
+            CoordUp.x = 0;
+            CoordUp.y = 0;
+            CoordDown = CoordUp;
+            Refresh();
+
+            modeCrop = false ;
+            cropping = false ;
+     }
+        Refresh();
+
+}
+
+
+void MyFrame::OnCrop2(wxCommandEvent& event) {
+       // m_panel->modeCrop = true;
+        m_panel->CropImg(event);
+}
+
+
+void MyPanel::CropImg(wxCommandEvent & event) {
     if (m_image == nullptr) {
-        wxLogMessage(wxT("Vous n'avez pas d'image à modifier"));
-    } else {
-        //wxMouseEvent & event = ;
-       // wxPoint CoordSouris = event.GetPosition();
-        wxRect rect = wxRect(wxPoint(0,0),wxPoint(45,98));
-        m_image->Crop(rect);
+         wxLogMessage(wxT("Vous n'avez pas d'image à Croper"));
     }
-    // Entrer dans un mode crop avec un booléen quand je rentre dans le mode crop je demande 2 click pour déterminer les coordonées du reclangle puis je ressors du mode et je crop
+    else {
+        modeCrop = true;
+        cropping = false ;
+
+    }
 }
 
 int MyPanel::getWidth(){
@@ -470,11 +517,3 @@ int MyPanel::getIndice(){
 void MyPanel::setIndice(int nouvelIndice){
     this->m_indice_copie = nouvelIndice;
 }
-
-/*stack <MyImage*> MyPanel::getCopies(){
-    return this->m_copies;
-}
-
-void MyPanel::setCopies(nouvelles_copies){
-
-}*/
