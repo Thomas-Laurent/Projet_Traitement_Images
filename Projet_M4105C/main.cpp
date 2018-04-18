@@ -33,25 +33,22 @@ public:
     void RotateImage(int angle);
     void BackImage(int indiceCopie);
     void CopieImage(int indiceCopie);
-		void CropImg(wxCommandEvent & event);
+    void CropImg();
     void OnLeftDown(wxMouseEvent& event);
-		void OnLeftUp(wxMouseEvent& event);
+    void OnLeftUp(wxMouseEvent& event);
     int getWidth();
     int getHeight();
-    int getIndice();
-    void setIndice(int nouvelIndice);
-
 
 private:
     wxBitmap m_bitmap ;	// used to display the image
-    MyImage *m_image;//, *m_copie_image;  // used to load and process the image
+    MyImage *m_image;  // used to load and process the image
     MyImage* m_copies [NB_RETOURS];
     wxPaintDC *dc;
-    int m_width = 0, m_height = 0, m_indice_copie = 0;
-		wxPoint CoordDown;
-		wxPoint CoordUp;
-		bool modeCrop = false;
-		bool cropping = false;
+    int m_width = 0, m_height = 0;
+    wxPoint CoordDown;
+    wxPoint CoordUp;
+    bool modeCrop = false;
+    bool cropping = false;
 };
 
 class MyFrame: public wxFrame
@@ -69,7 +66,11 @@ private:
 	void OnBack(wxCommandEvent& event);
 	void OnCrop2(wxCommandEvent& event);
 	MyPanel *m_panel; // the panel inside the main frame
-	int indiceCourant = 0;
+	int indiceCourant = 0, m_indice_copie = 0;
+	int getIndiceCopie();
+    void setIndiceCopie(int nouvelIndice);
+    int getIndiceCopieCourante();
+    void setIndiceCopieCourante(int nouvelIndice);
 
 };
 
@@ -174,12 +175,12 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 	menuFile3->AppendSeparator();
 
 	menuFile3->Append(ID_Crop, wxT("Crop \tAlt-C")) ;
-Bind(wxEVT_MENU, &MyFrame::OnCrop, this, ID_Crop2) ;
+    Bind(wxEVT_MENU, &MyFrame::OnProcessImage, this, ID_Crop) ;
 
 
 	wxMenuBar *menuBar = new wxMenuBar ;
 	menuBar->Append( menuFile, wxT("Fichier" )) ;
-  menuBar->Append( menuFile3, wxT("Outils" )) ;
+    menuBar->Append( menuFile3, wxT("Outils" )) ;
 	menuBar->Append( menuFile2, wxT("Options" )) ;
 	SetMenuBar(menuBar) ;
 
@@ -247,11 +248,14 @@ void MyFrame::OnSaveImage (wxCommandEvent& event)
 void MyFrame::OnProcessImage (wxCommandEvent& event)
 {
     clock_t delai = clock();
-    indiceCourant = m_panel->getIndice()%5;
-    m_panel->setIndice(m_panel->getIndice()+1);
-    std::cout << "Indice courant :" << indiceCourant << std::endl;
-    std::cout << "Indice global :" << m_panel->getIndice() << std::endl << "-----" << std::endl;
-    m_panel->CopieImage(indiceCourant);
+
+    int indiceCourantCopie = this->getIndiceCopieCourante();
+    int indiceCopie = this->getIndiceCopie();
+
+    std::cout << "Indice courant :" << indiceCourantCopie << std::endl;
+    std::cout << "Indice global :" << indiceCopie << std::endl << "-----" << std::endl;
+
+    m_panel->CopieImage(indiceCourantCopie);
 
     switch (event.GetId()) {
         case ID_HMirror:
@@ -291,23 +295,48 @@ void MyFrame::OnProcessImage (wxCommandEvent& event)
             break;
 
         case ID_Back :
-            m_panel->BackImage(indiceCourant);
+            if (indiceCopie != 0 && indiceCourantCopie != 0){
+                m_panel->BackImage(indiceCourantCopie);
+                this->setIndiceCopie(indiceCopie-1);
+                this->setIndiceCopieCourante(indiceCourantCopie-1);
+            } else {
+                wxLogMessage(wxT("Vous ne pouvez pas retourner en arrière"));
+            }
             break;
 
         case ID_Crop :
-            m_panel->CropImage();
+            m_panel->CropImg();
             break;
 
         default : Close(true); break;
 
     }
 
+    if (event.GetId() != ID_Back && indiceCourantCopie != NB_RETOURS){
+        this->setIndiceCopie(indiceCopie+1);
+        this->setIndiceCopieCourante(indiceCourantCopie+1);
+    }
+
     delai = clock() - delai;
     GetStatusBar()->SetStatusText("Temps Processus : " + std::to_string(((float)delai)/CLOCKS_PER_SEC) + " sec");
 
-    indiceCourant = (m_panel->getIndice()+1)%NB_RETOURS;
-
     Refresh();
+}
+
+int MyFrame::getIndiceCopie(){
+    return this->m_indice_copie;
+}
+
+void MyFrame::setIndiceCopie(int nouvelIndice){
+    this->m_indice_copie = nouvelIndice;
+}
+
+int MyFrame::getIndiceCopieCourante(){
+    return this->indiceCourant;
+}
+
+void MyFrame::setIndiceCopieCourante(int nouvelIndice){
+    this->indiceCourant = nouvelIndice;
 }
 
 
@@ -428,30 +457,39 @@ void MyPanel::CopieImage(int indiceCopie)
 {
     if (m_image != nullptr) {
 
+        if (indiceCopie == NB_RETOURS) {
+        delete m_copies[0];
+        for (int i = 0; i < NB_RETOURS-1; i++){
+            m_copies[i] = m_copies[i+1];
+        }
+
+        m_copies[NB_RETOURS-1] = new MyImage(m_image->GetWidth(), m_image->GetHeight());
+        *m_copies[NB_RETOURS-1] = m_image->Copy();
+
+        } else {
+
         if (m_copies[indiceCopie] != nullptr) {
             delete m_copies[indiceCopie];
         }
 
         m_copies[indiceCopie] = new MyImage(m_image->GetWidth(), m_image->GetHeight());
         *m_copies[indiceCopie] = m_image->Copy();
+
+        }
     }
 }
 
 void MyPanel::BackImage(int indiceCopie)
 {
-    if (m_copies[0] == nullptr && m_copies[NB_RETOURS-1] == nullptr) {
-        wxLogMessage(wxT("Vous ne pouvez pas retourner en arrière"));
-    } else {
         delete m_image;
         if (indiceCopie == 0){
             m_image = new MyImage(*m_copies[NB_RETOURS-1]);
         } else {
             m_image = new MyImage(*m_copies[indiceCopie-1]);
         }
-    }
     Refresh();
-}
 
+}
 
 void MyPanel::OnLeftDown(wxMouseEvent& event) {
      if (modeCrop == true) {
@@ -485,13 +523,7 @@ void MyPanel::OnLeftUp(wxMouseEvent& event){
 }
 
 
-void MyFrame::OnCrop2(wxCommandEvent& event) {
-       // m_panel->modeCrop = true;
-        m_panel->CropImg(event);
-}
-
-
-void MyPanel::CropImg(wxCommandEvent & event) {
+void MyPanel::CropImg() {
     if (m_image == nullptr) {
          wxLogMessage(wxT("Vous n'avez pas d'image à Croper"));
     }
@@ -510,10 +542,3 @@ int MyPanel::getHeight(){
     return this->m_height;
 }
 
-int MyPanel::getIndice(){
-    return this->m_indice_copie;
-}
-
-void MyPanel::setIndice(int nouvelIndice){
-    this->m_indice_copie = nouvelIndice;
-}

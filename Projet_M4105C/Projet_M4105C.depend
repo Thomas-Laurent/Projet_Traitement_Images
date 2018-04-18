@@ -1637,11 +1637,12 @@
 1521471276 /users/info/etu-s4/benettim/Git/Projet_Traitement_Images/Projet_M4105C/include/MyImage.h
 	<wx/wx.h>
 
-1521794489 source:/users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/main.cpp
+1524075616 source:/users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/main.cpp
 	<wx/wxprec.h>
 	<wx/wx.h>
 	<MyImage.h>
 	<time.h>
+	<iostream>
 
 1491890964 /usr/include/wx-3.0/wx/wxprec.h
 	"wx/defs.h"
@@ -1654,9 +1655,9 @@
 	"wx/os2/private.h"
 	"wx/wx.h"
 
-1521793491 /users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/include/MyImage.h
+1523989840 /users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/include/MyImage.h
 	<wx/wx.h>
 
-1521793491 source:/users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/src/MyImage.cpp
+1523989840 source:/users/info/etu-s4/laurenth/Git/Projet_Traitement_Images/Projet_M4105C/src/MyImage.cpp
 	"MyImage.h"
 
